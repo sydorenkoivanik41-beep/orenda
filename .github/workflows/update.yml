@@ -1,22 +1,29 @@
 name: Оновлення оголошень
 
+# ДЕМО-РЕЖИМ: автоматичного збору немає (сервери GitHub OLX і LUN блокують).
+# Сайт перебудовується з даних у папці raw/, коли вони змінюються,
+# або вручну кнопкою «Run workflow».
 on:
-  schedule:
-    # кожні 3 години (час UTC); 17-та хвилина — щоб не потрапити в «годину пік» GitHub
-    - cron: "17 */3 * * *"
-  workflow_dispatch: {}   # кнопка «Run workflow» для ручного запуску
+  push:
+    paths:
+      - "raw/**"
+      - "collector/**"
+      - "web/**"
+      - "*.txt"
+      - "settings.ini"
+  workflow_dispatch: {}
 
 permissions:
   contents: write
 
 concurrency:
   group: orenda-update
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -24,7 +31,7 @@ jobs:
           python-version: "3.12"
       - name: Встановити бібліотеку для порівняння фото
         run: pip install --quiet pillow
-      - name: Зібрати оголошення й опублікувати сайт
+      - name: Обробити зібрані оголошення й опублікувати сайт
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python collector/collect.py --publish
+        run: python collector/from_raw.py

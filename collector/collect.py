@@ -193,7 +193,7 @@ def write_site(listings, state, stats, status, settings, out_dir: Path):
     (out_dir / ".nojekyll").write_text("")
     cities_meta = []
     for city in settings.cities:
-        rows = [r for r in listings if r["city"] == city["slug"]]
+        rows = [r for r in listings if r.get("city") == city["slug"]]
         rows.sort(key=lambda r: r["published"] or "", reverse=True)
         for r in rows:
             r.pop("city", None)
