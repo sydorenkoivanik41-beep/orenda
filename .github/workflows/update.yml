@@ -1,0 +1,30 @@
+name: Оновлення оголошень
+
+on:
+  schedule:
+    # кожні 3 години (час UTC); 17-та хвилина — щоб не потрапити в «годину пік» GitHub
+    - cron: "17 */3 * * *"
+  workflow_dispatch: {}   # кнопка «Run workflow» для ручного запуску
+
+permissions:
+  contents: write
+
+concurrency:
+  group: orenda-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Встановити бібліотеку для порівняння фото
+        run: pip install --quiet pillow
+      - name: Зібрати оголошення й опублікувати сайт
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python collector/collect.py --publish
